@@ -1,0 +1,10 @@
+go env // show go env
+go mod tidy // unused code removed and ref package download
+go mod vendor // unused code removed and third party pkg do not use from go cache
+https://github.com/ardanlabs/service/wiki/running-kind // Kubernetes set up
+https://github.com/ardanlabs/service/wiki  //KIND installation
+https://kind.sigs.k8s.io/docs/user/quick-start/ - Kubernetes resource
+
+After choco installation:
+=========================
+choco install make // to run make file
