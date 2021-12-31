@@ -22,7 +22,8 @@ import (
 
 // build is the git version of this program. It is set using build flags in the makefile.
 var build = "develop"
-func main()  {
+
+func main() {
 	log, err := logger.New("SALES-API")
 	if err != nil {
 		fmt.Println(err)
@@ -46,7 +47,7 @@ func run(log *zap.SugaredLogger) error {
 		os.Exit(1)
 	}
 
-	log.Infow("startup","GOMAXPROCS", runtime.GOMAXPROCS(0))
+	log.Infow("startup", "GOMAXPROCS", runtime.GOMAXPROCS(0))
 	// =========================================================================
 	// Configuration
 
@@ -62,8 +63,8 @@ func run(log *zap.SugaredLogger) error {
 		}
 	}{
 		Version: conf.Version{
-			SVN: build,
-			Desc:  "copyright information here",
+			SVN:  build,
+			Desc: "copyright information here",
 		},
 	}
 
@@ -97,7 +98,7 @@ func run(log *zap.SugaredLogger) error {
 	// related endpoints. This includes the standard library endpoints.
 
 	// Construct the mux for the debug calls.
-	debugMux := handlers.DebugStandardLibraryMux()
+	debugMux := handlers.DebugMux(build, log)
 
 	// Start the service listening for debug requests.
 	// Not concerned with shutting this down with load shedding.
@@ -113,10 +114,15 @@ func run(log *zap.SugaredLogger) error {
 	shutdown := make(chan os.Signal, 1)
 	signal.Notify(shutdown, syscall.SIGINT, syscall.SIGTERM)
 
+	// Construct the mux for the API calls.
+	apiMux := handlers.APIMux(handlers.APIMuxConfig{
+		Shutdown: shutdown,
+		Log:      log,
+	})
 	// Construct a server to service the requests against the mux.
 	api := http.Server{
 		Addr:         cfg.Web.APIHost,
-		Handler:      nil,
+		Handler:      apiMux,
 		ReadTimeout:  cfg.Web.ReadTimeout,
 		WriteTimeout: cfg.Web.WriteTimeout,
 		IdleTimeout:  cfg.Web.IdleTimeout,
