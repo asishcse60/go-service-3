@@ -3,6 +3,7 @@ package handlers
 
 import (
 	"expvar"
+	"github.com/asishcse60/service/app/services/sales-api/handlers/v1/testgrp"
 	"net/http"
 	"net/http/pprof"
 	"os"
@@ -10,7 +11,6 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/asishcse60/service/app/services/sales-api/handlers/debug/checkgrp"
-	"github.com/asishcse60/service/app/services/sales-api/handlers/v1/testgrp"
 	"github.com/asishcse60/service/foundation/web"
 )
 
@@ -58,10 +58,20 @@ type APIMuxConfig struct {
 
 // APIMux constructs a http.Handler with all application routes defined.
 func APIMux(cfg APIMuxConfig) *web.App {
+	// constructs the web.app which holds all routes as well as common middleware.
 	app := web.NewApp(cfg.Shutdown)
+
+	v1(app, cfg)
+
+	return app
+}
+
+// v1 build for all v1 routes.
+func v1(app *web.App, cfg APIMuxConfig) {
+	const version = "v1"
 	tgh := testgrp.Handlers{
 		Log: cfg.Log,
 	}
-	app.Handle(http.MethodGet, "/v1/test", tgh.Test)
-	return app
+
+	app.Handle(http.MethodGet, version, "/test", tgh.Test)
 }
