@@ -4,6 +4,7 @@ package handlers
 import (
 	"expvar"
 	"github.com/asishcse60/service/app/services/sales-api/handlers/v1/testgrp"
+	"github.com/asishcse60/service/business/web/mid"
 	"net/http"
 	"net/http/pprof"
 	"os"
@@ -59,7 +60,9 @@ type APIMuxConfig struct {
 // APIMux constructs a http.Handler with all application routes defined.
 func APIMux(cfg APIMuxConfig) *web.App {
 	// constructs the web.app which holds all routes as well as common middleware.
-	app := web.NewApp(cfg.Shutdown)
+	app := web.NewApp(
+		cfg.Shutdown,
+		mid.Logger(cfg.Log))
 
 	v1(app, cfg)
 
