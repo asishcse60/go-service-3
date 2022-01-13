@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	if err:=commands.GenKey(); err!=nil{
+	if err:=commands.GenToken(); err!=nil{
 		fmt.Println(err)
 	}
 }
