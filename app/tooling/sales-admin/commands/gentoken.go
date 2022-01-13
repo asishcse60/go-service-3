@@ -3,14 +3,16 @@ package commands
 import (
 	"crypto/x509"
 	"encoding/pem"
+	"errors"
 	"fmt"
-	"github.com/golang-jwt/jwt/v4"
 	"io"
 	"os"
 	"time"
+
+	"github.com/golang-jwt/jwt/v4"
 )
 
-func GenToken() error{
+func GenToken() error {
 	name := "zarf/keys/54bb2165-71e1-41a6-af3e-7da4a0e1e2c1.pem"
 	file, err := os.Open(name)
 	if err != nil {
@@ -41,9 +43,9 @@ func GenToken() error{
 	// nbf (not before time): Time before which the JWT must not be accepted for processing
 	// iat (issued at time): Time at which the JWT was issued; can be used to determine age of the JWT
 	// jti (JWT ID): Unique identifier; can be used to prevent the JWT from being replayed (allows a token to be used only once)
-	claims := struct{
+	claims := struct {
 		jwt.RegisteredClaims
-		Roles [] string
+		Roles []string
 	}{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   "123456789",
@@ -58,16 +60,16 @@ func GenToken() error{
 	token := jwt.NewWithClaims(method, claims)
 	token.Header["kid"] = "54bb2165-71e1-41a6-af3e-7da4a0e1e2c1"
 
-	str, err := token.SignedString(privateKey)
+	tokenStr, err := token.SignedString(privateKey)
 	if err != nil {
 		return err
 	}
 
 	fmt.Println("============= TOKEN BIGIN ============")
-	fmt.Println(str)
+	fmt.Println(tokenStr)
 	fmt.Println("============= TOKEN END ============")
 	fmt.Print("\n")
-   //================================================================
+	//================================================================
 	// Marshal the public key from the private key to PKIX.
 	asn1Bytes, err := x509.MarshalPKIXPublicKey(&privateKey.PublicKey)
 	if err != nil {
@@ -85,5 +87,37 @@ func GenToken() error{
 	}
 
 	fmt.Println("private and public key files generated")
+	fmt.Println("==========================")
+	//===========================================================
+	// Create the token parser to use. The algorithm used to sign the JWT must be
+	// validated to avoid a critical vulnerability:
+	// https://auth0.com/blog/critical-vulnerabilities-in-json-web-token-libraries/
+	parser := jwt.NewParser(jwt.WithValidMethods([]string{"RS256"}))
+	var parsedClaims struct {
+		jwt.RegisteredClaims
+		Roles []string
+	}
+	keyFunc := func(t *jwt.Token) (interface{}, error) {
+		kid, ok := t.Header["kid"]
+		if !ok {
+			return nil, errors.New("missing key id (kid) in token header")
+		}
+		kidID, ok := kid.(string)
+		if !ok {
+			return nil, errors.New("user token key id (kid) must be string")
+		}
+		fmt.Println("KID:", kidID)
+		return &privateKey.PublicKey, nil
+	}
+
+	parsedToken, err := parser.ParseWithClaims(tokenStr, &parsedClaims, keyFunc)
+	if err != nil {
+		return fmt.Errorf("parsing token: %w", err)
+	}
+	if !parsedToken.Valid {
+		return fmt.Errorf("invalid token")
+	}
+
+	fmt.Println("Token is Validated")
 	return nil
 }
