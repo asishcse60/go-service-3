@@ -1,3 +1,4 @@
+// Package testgrp - declare testgroup.
 package testgrp
 
 import (

@@ -32,6 +32,12 @@ run:
 admin:
 	go run app/tooling/sales-admin/main.go
 
+# Running tests within the local computer
+
+test:
+	go test ./... -count=1
+	staticcheck -checks=all ./...
+
 run-help:
 	go run app/services/sales-api/main.go --help
 	go run app/services/sales-api/main.go --version

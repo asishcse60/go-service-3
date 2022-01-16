@@ -14,6 +14,7 @@ RUN go build -ldflags "-X main.build=${BUILD_REF}"
 FROM alpine:3.15
 ARG BUILD_DATE
 ARG BUILD_REF
+COPY --from=build_sales-api /go-service-3/zarf/keys/. /go-service-3/zarf/keys/.
 COPY --from=build_sales-api /go-service-3/app/services/sales-api/sales-api /go-service-3/sales-api
 WORKDIR /go-service-3
 CMD ["./sales-api"]
