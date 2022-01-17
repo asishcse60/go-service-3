@@ -1,10 +1,14 @@
 package checkgrp
 
 import (
+	"context"
 	"encoding/json"
+	"github.com/asishcse60/service/business/sys/database"
 	"net/http"
 	"os"
+	"time"
 
+	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 )
 
@@ -12,6 +16,7 @@ import (
 type Handlers struct {
 	Build string
 	Log   *zap.SugaredLogger
+	DB    *sqlx.DB
 }
 
 // Liveness returns simple status info if the service is alive. If the
@@ -53,8 +58,16 @@ func (h Handlers) Liveness(w http.ResponseWriter, r *http.Request) {
 // Do not respond by just returning an error because further up in the call
 // stack it will interpret that as a non-trusted error.
 func (h Handlers) Readiness(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), time.Second)
+	defer cancel()
+
 	status := "OK"
 	statusCode := http.StatusOK
+
+	if err := database.StatusCheck(ctx, h.DB); err != nil {
+		status = "db not ready"
+		statusCode = http.StatusInternalServerError
+	}
 
 	data := struct {
 		Build  string

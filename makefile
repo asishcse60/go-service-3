@@ -104,6 +104,8 @@ kind-apply-linux:
 #	kubectl apply -f zarf/k8s/base/sales-pod/base-sales.yaml
 
 kind-apply:
+	kustomize build zarf/k8s/kind/database-pod | kubectl apply -f -
+	kubectl wait --namespace=database-system --timeout=120s --for=condition=Available deployment/database-pod
 	kustomize build zarf/k8s/kind/sales-pod | kubectl apply -f -
 
 kind-status:
@@ -114,8 +116,14 @@ kind-status:
 kind-status-sales:
 	kubectl get pods -o wide --watch
 
+kind-status-db:
+	kubectl get pods -o wide --watch --namespace=database-system
+
 kind-logs:
 	kubectl logs -l app=sales --all-containers=true -f --tail=100 | go run app/tooling/logfmt/main.go
+
+kind-logs-db:
+	kubectl logs -l app=database --namespace=database-system --all-containers=true -f --tail=100
 
 kind-restart:
 	kubectl rollout restart deployment sales-pod
