@@ -10,9 +10,12 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
+	"go.uber.org/zap"
+
+	"github.com/asishcse60/service/business/sys/database"
 )
 
-func GenToken() error {
+func GenToken(log *zap.SugaredLogger, cfg database.Config, userID string, kid string) error {
 	name := "zarf/keys/54bb2165-71e1-41a6-af3e-7da4a0e1e2c1.pem"
 	file, err := os.Open(name)
 	if err != nil {
