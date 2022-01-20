@@ -5,8 +5,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/asishcse60/service/foundation/web"
-	"go.uber.org/zap"
 	"net/url"
 	"reflect"
 	"strings"
@@ -14,6 +12,9 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq" // Calls init function.
+	"go.uber.org/zap"
+
+	"github.com/asishcse60/service/foundation/web"
 )
 
 // Set of error variables for CRUD operations.
@@ -89,6 +90,55 @@ func StatusCheck(ctx context.Context, db *sqlx.DB) error {
 	const q = `SELECT true`
 	var tmp bool
 	return db.QueryRowContext(ctx, q).Scan(&tmp)
+}
+
+// Transactor interface needed to begin transaction.
+type Transactor interface {
+	Beginx() (*sqlx.Tx, error)
+}
+
+// WithinTran runs passed function and do commit/rollback at the end.
+func WithinTran(ctx context.Context, log *zap.SugaredLogger, db Transactor, fn func(sqlx.ExtContext) error) error {
+	traceID := web.GetTraceID(ctx)
+
+	// Begin the transaction.
+	log.Infow("begin tran", "traceid", traceID)
+	tx, err := db.Beginx()
+	if err != nil {
+		return fmt.Errorf("begin tran: %w", err)
+	}
+
+	// Mark to the defer function a rollback is required.
+	mustRollback := true
+
+	// Set up a defer function for rolling back the transaction. If
+	// mustRollback is true it means the call to fn failed, and we
+	// need to roll back the transaction.
+	defer func() {
+		if mustRollback {
+			log.Infow("rollback tran", "traceid", traceID)
+			if err := tx.Rollback(); err != nil {
+				log.Errorw("unable to rollback tran", "traceid", traceID, "ERROR", err)
+			}
+		}
+	}()
+
+	// Execute the code inside the transaction. If the function
+	// fails, return the error and the defer function will roll back.
+	if err := fn(tx); err != nil {
+		return fmt.Errorf("exec tran: %w", err)
+	}
+
+	// Disarm the deferred rollback.
+	mustRollback = false
+
+	// Commit the transaction.
+	log.Infow("commit tran", "traceid", traceID)
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit tran: %w", err)
+	}
+
+	return nil
 }
 
 // NamedExecContext is a helper function to execute a CUD operation with
