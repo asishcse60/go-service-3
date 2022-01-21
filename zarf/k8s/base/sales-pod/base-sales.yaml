@@ -25,7 +25,7 @@ spec:
         # sales-api init container configuration
         - name: init-migrate
           image: sales-api-image
-          command: [ './sales-admin' ]
+          command: ['./sales-admin', 'migrate']
       containers:
         # sales-api container configuration
         - name: sales-api
@@ -54,22 +54,27 @@ spec:
             successThreshold: 1
             failureThreshold: 2
           env:
-            - name: KUBERNETES_NAMESPACE
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.namespace
-            - name: KUBERNETES_PODNAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-            - name: KUBERNETES_NAMESPACE_POD_IP
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
-            - name: KUBERNETES_NODENAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: spec.nodeName
+          - name: SALES_DB_HOST
+            valueFrom:
+              configMapKeyRef:
+                name: app-config
+                key: db_host
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: KUBERNETES_PODNAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: KUBERNETES_NAMESPACE_POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: KUBERNETES_NODENAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
 ---
 apiVersion: v1
 kind: Service

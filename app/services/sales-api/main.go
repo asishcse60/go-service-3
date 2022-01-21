@@ -5,9 +5,6 @@ import (
 	"errors"
 	"expvar"
 	"fmt"
-	"github.com/asishcse60/service/business/sys/auth"
-	"github.com/asishcse60/service/business/sys/database"
-	"github.com/asishcse60/service/foundation/keystore"
 	"net/http"
 	"os"
 	"os/signal"
@@ -20,6 +17,9 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/asishcse60/service/app/services/sales-api/handlers"
+	"github.com/asishcse60/service/business/sys/auth"
+	"github.com/asishcse60/service/business/sys/database"
+	"github.com/asishcse60/service/foundation/keystore"
 	"github.com/asishcse60/service/foundation/logger"
 )
 
