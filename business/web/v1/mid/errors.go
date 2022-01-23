@@ -8,8 +8,6 @@ import (
 
 	"github.com/asishcse60/service/business/sys/validate"
 	"github.com/asishcse60/service/foundation/web"
-
-
 )
 
 // Errors handles errors coming out of the call chain. It detects normal
@@ -39,22 +37,18 @@ func Errors(log *zap.SugaredLogger) web.Middleware {
 				// Build out the error response.
 				var er validate.ErrorResponse
 				var status int
-				switch {
-				case validate.IsFieldErrors(err):
-					fieldErrors := validate.GetFieldErrors(err)
+				switch act := validate.Cause(err).(type) {
+				case validate.FieldErrors:
 					er = validate.ErrorResponse{
 						Error:  "data validation error",
-						Fields: fieldErrors.Fields(),
+						Fields: act.Error(),
 					}
 					status = http.StatusBadRequest
-
-				case validate.IsRequestError(err):
-					reqErr := validate.GetRequestError(err)
+				case *validate.RequestError:
 					er = validate.ErrorResponse{
-						Error: reqErr.Error(),
+						Error: act.Error(),
 					}
-					status = reqErr.Status
-
+					status = act.Status
 				default:
 					er = validate.ErrorResponse{
 						Error: http.StatusText(http.StatusInternalServerError),
@@ -68,7 +62,7 @@ func Errors(log *zap.SugaredLogger) web.Middleware {
 				}
 
 				// If we receive the shutdown err we need to return it
-				// back to the base handler to shut down the service.
+				// back to the base handler to shutdown the service.
 				if ok := web.IsShutdown(err); ok {
 					return err
 				}

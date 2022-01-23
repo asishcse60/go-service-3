@@ -19,8 +19,10 @@ import (
 
 // Set of error variables for CRUD operations.
 var (
-	ErrDBNotFound        = errors.New("not found")
-	ErrDBDuplicatedEntry = errors.New("duplicated entry")
+	ErrNotFound              = errors.New("not found")
+	ErrInvalidID             = errors.New("ID is not in its proper form")
+	ErrAuthenticationFailure = errors.New("authentication failed")
+	ErrForbidden             = errors.New("attempted action is not allowed")
 )
 
 // Config is the required properties to use the database.
@@ -57,6 +59,7 @@ func Open(cfg Config) (*sqlx.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	db.SetMaxIdleConns(cfg.MaxIdleConns)
 	db.SetMaxOpenConns(cfg.MaxOpenConns)
 
@@ -66,7 +69,6 @@ func Open(cfg Config) (*sqlx.DB, error) {
 // StatusCheck returns nil if it can successfully talk to the database. It
 // returns a non-nil error otherwise.
 func StatusCheck(ctx context.Context, db *sqlx.DB) error {
-
 	// First check we can ping the database.
 	var pingError error
 	for attempts := 1; ; attempts++ {
@@ -167,7 +169,7 @@ func NamedQueryStruct(ctx context.Context, log *zap.SugaredLogger, db sqlx.ExtCo
 	defer rows.Close()
 
 	if !rows.Next() {
-		return ErrDBNotFound
+		return ErrNotFound
 	}
 
 	if err := rows.StructScan(dest); err != nil {

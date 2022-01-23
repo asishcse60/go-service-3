@@ -83,7 +83,6 @@ func run(log *zap.SugaredLogger) error {
 		Name:       cfg.DB.Name,
 		DisableTLS: cfg.DB.DisableTLS,
 	}
-
 	return processCommands(cfg.Args, log, dbConfig)
 }
 

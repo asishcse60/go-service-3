@@ -1,15 +1,11 @@
-package db
+package product
 
 const (
-	// ProductCreateQuery - declare product create query.
-	ProductCreateQuery =  `
-	INSERT INTO products
-		(product_id, user_id, name, cost, quantity, date_created, date_updated)
-	VALUES
-		(:product_id, :user_id, :name, :cost, :quantity, :date_created, :date_updated)`
+	// CreateProductQuery - declare product create query.
+	CreateProductQuery =  `INSERT INTO products (product_id, user_id, name, cost, quantity, date_created, date_updated) VALUES (:product_id, :user_id, :name, :cost, :quantity, :date_created, :date_updated)`
 
-	// ProductUpdateQuery - declare product update query.
-	ProductUpdateQuery =  `
+	// UpdateProductQuery - declare product update query.
+	UpdateProductQuery =  `
 	UPDATE
 		products
 	SET
@@ -20,15 +16,15 @@ const (
 	WHERE
 		product_id = :product_id`
 
-	// ProductDeleteQuery - declare product delete query.
-	ProductDeleteQuery =  `
+	// DeleteProductQuery - declare product delete query.
+	DeleteProductQuery =  `
 	DELETE FROM
 		products
 	WHERE
 		product_id = :product_id`
 
-	// ProductListQuery - declare product list query.
-	ProductListQuery = `
+	// ListProductQuery - declare product list query.
+	ListProductQuery = `
 	SELECT
 		p.*,
 		COALESCE(SUM(s.quantity) ,0) AS sold,
@@ -43,8 +39,8 @@ const (
 		user_id
 	OFFSET :offset ROWS FETCH NEXT :rows_per_page ROWS ONLY`
 
-	// ProductIDQuery - declare product ID query.
-	ProductIDQuery = `
+	// IDProductQuery - declare product ID query.
+	IDProductQuery = `
 	SELECT
 		p.*,
 		COALESCE(SUM(s.quantity), 0) AS sold,
@@ -58,8 +54,8 @@ const (
 	GROUP BY
 		p.product_id`
 
-	// ProductUserIDQuery - declare product user ID query.
-	ProductUserIDQuery =  `
+	// UserProductIDQuery - declare product user ID query.
+	UserProductIDQuery =  `
 	SELECT
 		p.*,
 		COALESCE(SUM(s.quantity), 0) AS sold,

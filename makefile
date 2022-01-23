@@ -10,8 +10,6 @@ SHELL := /bin/bash
 # For testing load on the service.
 # hey -m GET -c 100 -n 10000 -H "Authorization: Bearer ${TOKEN}" http://localhost:3000/v1/users/1/2
 # hey -m GET -c 100 -n 10000 http://localhost:3000/v1/test
-
-# Access zipkin
 # zipkin: http://localhost:9411
 
 # Access metrics directly (4000) or through the sidecar (3001)

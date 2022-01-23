@@ -8,6 +8,9 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 )
 
+// ErrForbidden is returned when a auth issue is identified.
+var ErrForbidden = errors.New("attempted action is not allowed")
+
 // KeyLookup declares a method set of behavior for looking up
 // private and public keys for JWT use.
 type KeyLookup interface {

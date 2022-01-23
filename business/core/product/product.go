@@ -5,147 +5,116 @@ package product
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"time"
 
 	"github.com/jmoiron/sqlx"
 	"go.uber.org/zap"
 
-	"github.com/asishcse60/service/business/core/product/db"
-	"github.com/asishcse60/service/business/sys/database"
-	"github.com/asishcse60/service/business/sys/validate"
+	"github.com/asishcse60/service/business/data/store/product"
+	"github.com/asishcse60/service/business/sys/auth"
 )
 
-// Set of error variables for CRUD operations.
-var (
-	ErrNotFound  = errors.New("product not found")
-	ErrInvalidID = errors.New("ID is not in its proper form")
-)
-
-// Core manages the set of APIs for product access.
+// Core manages the set of API's for product access.
 type Core struct {
-	store db.Store
+	log     *zap.SugaredLogger
+	product product.Store
 }
 
 // NewCore constructs a core for product api access.
-func NewCore(log *zap.SugaredLogger, sqlxDB *sqlx.DB) Core {
+func NewCore(log *zap.SugaredLogger, db *sqlx.DB) Core {
 	return Core{
-		store: db.NewStore(log, sqlxDB),
+		log:     log,
+		product: product.NewStore(log, db),
 	}
 }
 
 // Create adds a Product to the database. It returns the created Product with
 // fields like ID and DateCreated populated.
-func (c Core) Create(ctx context.Context, np NewProduct, now time.Time) (Product, error) {
-	if err := validate.Check(np); err != nil {
-		return Product{}, fmt.Errorf("validating data: %w", err)
+func (c Core) Create(ctx context.Context, claims auth.Claims, np product.NewProduct, now time.Time) (product.Product, error) {
+
+	// PERFORM PRE BUSINESS OPERATIONS
+
+	prd, err := c.product.Create(ctx, claims, np, now)
+	if err != nil {
+		return product.Product{}, fmt.Errorf("create: %w", err)
 	}
 
-	dbPrd := db.Product{
-		ID:          validate.GenerateID(),
-		Name:        np.Name,
-		Cost:        np.Cost,
-		Quantity:    np.Quantity,
-		UserID:      np.UserID,
-		DateCreated: now,
-		DateUpdated: now,
-	}
+	// PERFORM POST BUSINESS OPERATIONS
 
-	if err := c.store.Create(ctx, dbPrd); err != nil {
-		return Product{}, fmt.Errorf("create: %w", err)
-	}
-
-	return toProduct(dbPrd), nil
+	return prd, nil
 }
 
 // Update modifies data about a Product. It will error if the specified ID is
 // invalid or does not reference an existing Product.
-func (c Core) Update(ctx context.Context, productID string, up UpdateProduct, now time.Time) error {
-	if err := validate.CheckID(productID); err != nil {
-		return ErrInvalidID
-	}
+func (c Core) Update(ctx context.Context, claims auth.Claims, productID string, up product.UpdateProduct, now time.Time) error {
 
-	if err := validate.Check(up); err != nil {
-		return fmt.Errorf("validating data: %w", err)
-	}
+	// PERFORM PRE BUSINESS OPERATIONS
 
-	dbPrd, err := c.store.QueryByID(ctx, productID)
-	if err != nil {
-		if errors.Is(err, database.ErrDBNotFound) {
-			return ErrNotFound
-		}
-		return fmt.Errorf("updating product productID[%s]: %w", productID, err)
-	}
-
-	if up.Name != nil {
-		dbPrd.Name = *up.Name
-	}
-	if up.Cost != nil {
-		dbPrd.Cost = *up.Cost
-	}
-	if up.Quantity != nil {
-		dbPrd.Quantity = *up.Quantity
-	}
-	dbPrd.DateUpdated = now
-
-	if err := c.store.Update(ctx, dbPrd); err != nil {
+	if err := c.product.Update(ctx, claims, productID, up, now); err != nil {
 		return fmt.Errorf("update: %w", err)
 	}
+
+	// PERFORM POST BUSINESS OPERATIONS
 
 	return nil
 }
 
 // Delete removes the product identified by a given ID.
-func (c Core) Delete(ctx context.Context, productID string) error {
-	if err := validate.CheckID(productID); err != nil {
-		return ErrInvalidID
-	}
+func (c Core) Delete(ctx context.Context, claims auth.Claims, productID string) error {
 
-	if err := c.store.Delete(ctx, productID); err != nil {
+	// PERFORM PRE BUSINESS OPERATIONS
+
+	if err := c.product.Delete(ctx, claims, productID); err != nil {
 		return fmt.Errorf("delete: %w", err)
 	}
+
+	// PERFORM POST BUSINESS OPERATIONS
 
 	return nil
 }
 
 // Query gets all Products from the database.
-func (c Core) Query(ctx context.Context, pageNumber int, rowsPerPage int) ([]Product, error) {
-	dbPrds, err := c.store.Query(ctx, pageNumber, rowsPerPage)
+func (c Core) Query(ctx context.Context, pageNumber int, rowsPerPage int) ([]product.Product, error) {
+
+	// PERFORM PRE BUSINESS OPERATIONS
+
+	products, err := c.product.Query(ctx, pageNumber, rowsPerPage)
 	if err != nil {
 		return nil, fmt.Errorf("query: %w", err)
 	}
 
-	return toProductSlice(dbPrds), nil
+	// PERFORM POST BUSINESS OPERATIONS
+
+	return products, nil
 }
 
 // QueryByID finds the product identified by a given ID.
-func (c Core) QueryByID(ctx context.Context, productID string) (Product, error) {
-	if err := validate.CheckID(productID); err != nil {
-		return Product{}, ErrInvalidID
-	}
+func (c Core) QueryByID(ctx context.Context, productID string) (product.Product, error) {
 
-	dbPrd, err := c.store.QueryByID(ctx, productID)
+	// PERFORM PRE BUSINESS OPERATIONS
+
+	prd, err := c.product.QueryByID(ctx, productID)
 	if err != nil {
-		if errors.Is(err, database.ErrDBNotFound) {
-			return Product{}, ErrNotFound
-		}
-		return Product{}, fmt.Errorf("query: %w", err)
+		return product.Product{}, fmt.Errorf("query: %w", err)
 	}
 
-	return toProduct(dbPrd), nil
+	// PERFORM POST BUSINESS OPERATIONS
+
+	return prd, nil
 }
 
-// QueryByUserID finds the products identified by a given User ID.
-func (c Core) QueryByUserID(ctx context.Context, userID string) ([]Product, error) {
-	if err := validate.CheckID(userID); err != nil {
-		return nil, ErrInvalidID
-	}
+// QueryByUserID finds the product identified by a given User ID.
+func (c Core) QueryByUserID(ctx context.Context, userID string) ([]product.Product, error) {
 
-	dbPrds, err := c.store.QueryByUserID(ctx, userID)
+	// PERFORM PRE BUSINESS OPERATIONS
+
+	products, err := c.product.QueryByUserID(ctx, userID)
 	if err != nil {
 		return nil, fmt.Errorf("query: %w", err)
 	}
 
-	return toProductSlice(dbPrds), nil
+	// PERFORM POST BUSINESS OPERATIONS
+
+	return products, nil
 }

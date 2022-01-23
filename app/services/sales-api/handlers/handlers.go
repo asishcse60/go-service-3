@@ -11,9 +11,9 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/asishcse60/service/app/services/sales-api/handlers/debug/checkgrp"
-	"github.com/asishcse60/service/app/services/sales-api/handlers/v1/testgrp"
+	v1 "github.com/asishcse60/service/app/services/sales-api/handlers/v1"
 	"github.com/asishcse60/service/business/sys/auth"
-	"github.com/asishcse60/service/business/web/mid"
+	"github.com/asishcse60/service/business/web/v1/mid"
 	"github.com/asishcse60/service/foundation/web"
 )
 
@@ -72,18 +72,13 @@ func APIMux(cfg APIMuxConfig) *web.App {
 		mid.Metrics(),
 		mid.Panics())
 
-	v1(app, cfg)
+	// Load the v1 routes.
+	v1.Routes(app, v1.Config{
+		Log:  cfg.Log,
+		Auth: cfg.Auth,
+		DB:   cfg.DB,
+	})
 
 	return app
 }
 
-// v1 build for all v1 routes.
-func v1(app *web.App, cfg APIMuxConfig) {
-	const version = "v1"
-	tgh := testgrp.Handlers{
-		Log: cfg.Log,
-	}
-
-	app.Handle(http.MethodGet, version, "/test", tgh.Test)
-	app.Handle(http.MethodGet, version, "/testauth", tgh.Test, mid.Authenticate(cfg.Auth), mid.Authorize("ADMIN"))
-}

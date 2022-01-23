@@ -8,3 +8,5 @@ https://kind.sigs.k8s.io/docs/user/quick-start/ - Kubernetes resource
 After choco installation:
 =========================
 choco install make // to run make file
+
+// Be Careful about the Port, so that no 2 service cannot use same port

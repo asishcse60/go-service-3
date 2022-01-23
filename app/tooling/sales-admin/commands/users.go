@@ -10,7 +10,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/asishcse60/service/business/core/user"
+	"github.com/asishcse60/service/business/data/store/user"
 	"github.com/asishcse60/service/business/sys/database"
 )
 
@@ -21,7 +21,7 @@ func Users(log *zap.SugaredLogger, cfg database.Config, pageNumber string, rowsP
 		return fmt.Errorf("connect database: %w", err)
 	}
 	defer db.Close()
-
+	fmt.Println("User function call")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -35,9 +35,9 @@ func Users(log *zap.SugaredLogger, cfg database.Config, pageNumber string, rowsP
 		return fmt.Errorf("converting rows per page: %w", err)
 	}
 
-	user := user.NewCore(log, db)
+	store := user.NewStore(log, db)
 
-	users, err := user.Query(ctx, page, rows)
+	users, err := store.Query(ctx, page, rows)
 	if err != nil {
 		return fmt.Errorf("retrieve users: %w", err)
 	}

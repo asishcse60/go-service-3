@@ -2,20 +2,19 @@ package user
 
 import (
 	"time"
-	"unsafe"
 
-	"github.com/asishcse60/service/business/core/user/db"
+	"github.com/lib/pq"
 )
 
 // User represents an individual user.
 type User struct {
-	ID           string    `json:"id"`
-	Name         string    `json:"name"`
-	Email        string    `json:"email"`
-	Roles        []string  `json:"roles"`
-	PasswordHash []byte    `json:"-"`
-	DateCreated  time.Time `json:"date_created"`
-	DateUpdated  time.Time `json:"date_updated"`
+	ID           string         `db:"user_id" json:"id"`
+	Name         string         `db:"name" json:"name"`
+	Email        string         `db:"email" json:"email"`
+	Roles        pq.StringArray `db:"roles" json:"roles"`
+	PasswordHash []byte         `db:"password_hash" json:"-"`
+	DateCreated  time.Time      `db:"date_created" json:"date_created"`
+	DateUpdated  time.Time      `db:"date_updated" json:"date_updated"`
 }
 
 // NewUser contains information needed to create a new User.
@@ -39,19 +38,4 @@ type UpdateUser struct {
 	Roles           []string `json:"roles"`
 	Password        *string  `json:"password"`
 	PasswordConfirm *string  `json:"password_confirm" validate:"omitempty,eqfield=Password"`
-}
-
-// =============================================================================
-
-func toUser(dbUsr db.User) User {
-	pu := (*User)(unsafe.Pointer(&dbUsr))
-	return *pu
-}
-
-func toUserSlice(dbUsrs []db.User) []User {
-	users := make([]User, len(dbUsrs))
-	for i, dbUsr := range dbUsrs {
-		users[i] = toUser(dbUsr)
-	}
-	return users
 }

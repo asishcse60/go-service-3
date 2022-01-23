@@ -9,7 +9,7 @@ import (
 	"github.com/golang-jwt/jwt/v4"
 	"go.uber.org/zap"
 
-	"github.com/asishcse60/service/business/core/user"
+	"github.com/asishcse60/service/business/data/store/user"
 	"github.com/asishcse60/service/business/sys/auth"
 	"github.com/asishcse60/service/business/sys/database"
 	"github.com/asishcse60/service/foundation/keystore"
@@ -30,9 +30,17 @@ func GenToken(log *zap.SugaredLogger, cfg database.Config, userID string, kid st
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	user := user.NewCore(log, db)
+	user := user.NewStore(log, db)
 
-	usr, err := user.QueryByID(ctx, userID)
+	// The call to retrieve a user requires an Admin role by the caller.
+	claims := auth.Claims{
+		RegisteredClaims: jwt.RegisteredClaims{
+			Subject: userID,
+		},
+		Roles: []string{auth.RoleAdmin},
+	}
+
+	usr, err := user.QueryByID(ctx, claims, userID)
 	if err != nil {
 		return fmt.Errorf("retrieve user: %w", err)
 	}
@@ -64,7 +72,7 @@ func GenToken(log *zap.SugaredLogger, cfg database.Config, userID string, kid st
 	// nbf (not before time): Time before which the JWT must not be accepted for processing
 	// iat (issued at time): Time at which the JWT was issued; can be used to determine age of the JWT
 	// jti (JWT ID): Unique identifier; can be used to prevent the JWT from being replayed (allows a token to be used only once)
-	claims := auth.Claims{
+	claims = auth.Claims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   usr.ID,
 			Issuer:    "service project",

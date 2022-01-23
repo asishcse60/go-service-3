@@ -1,14 +1,14 @@
-package db
+package user
 
 const (
-	// UserCreateQuery - declare user create query.
-	UserCreateQuery = `INSERT INTO users
+	// CreateUserQuery - declare user create query.
+	CreateUserQuery = `INSERT INTO users
 		(user_id, name, email, password_hash, roles, date_created, date_updated)
 	VALUES
 		(:user_id, :name, :email, :password_hash, :roles, :date_created, :date_updated)`
 
-	// UserUpdateQuery - declare user update query.
-	UserUpdateQuery = `UPDATE 
+	// UpdateUserQuery - declare user update query.
+	UpdateUserQuery = `UPDATE 
 							users 
 						SET
 							"name" = :name,
@@ -19,15 +19,15 @@ const (
 						WHERE
 							user_id = :user_id`
 
-	// UserDeleteQuery - declare user delete query.
-	UserDeleteQuery = `
+	// DeleteUserQuery - declare user delete query.
+	DeleteUserQuery = `
 	DELETE FROM
 		users
 	WHERE
 		user_id = :user_id`
 
-	// UserListQuery - declare user list query.
-	UserListQuery = `
+	// ListUserQuery - declare user list query.
+	ListUserQuery = `
 	SELECT
 		*
 	FROM
@@ -36,8 +36,8 @@ const (
 		user_id
 	OFFSET :offset ROWS FETCH NEXT :rows_per_page ROWS ONLY`
 
-	// UserIDQuery - declare user ID query.
-	UserIDQuery = `
+	// IDUserQuery - declare user ID query.
+	IDUserQuery = `
 	SELECT
 		*
 	FROM
@@ -45,8 +45,8 @@ const (
 	WHERE 
 		user_id = :user_id`
 
-	// UserEmailQuery - declare user Email query.
-	UserEmailQuery = `
+	// EmailUserQuery - declare user Email query.
+	EmailUserQuery = `
 	SELECT
 		*
 	FROM

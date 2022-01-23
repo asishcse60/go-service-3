@@ -7,7 +7,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/asishcse60/service/business/core/user"
+	"github.com/asishcse60/service/business/data/store/user"
 	"github.com/asishcse60/service/business/sys/auth"
 	"github.com/asishcse60/service/business/sys/database"
 )
@@ -28,7 +28,7 @@ func UserAdd(log *zap.SugaredLogger, cfg database.Config, name, email, password 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	core := user.NewCore(log, db)
+	store := user.NewStore(log, db)
 
 	nu := user.NewUser{
 		Name:            name,
@@ -38,7 +38,7 @@ func UserAdd(log *zap.SugaredLogger, cfg database.Config, name, email, password 
 		Roles:           []string{auth.RoleAdmin, auth.RoleUser},
 	}
 
-	usr, err := core.Create(ctx, nu, time.Now())
+	usr, err := store.Create(ctx, nu, time.Now())
 	if err != nil {
 		return fmt.Errorf("create user: %w", err)
 	}
