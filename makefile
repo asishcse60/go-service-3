@@ -5,9 +5,16 @@ SHELL := /bin/bash
 # For testing a simple query on the system. Don't forget to `make seed` first.
 # curl --user "admin@example.com:gophers" http://localhost:3000/v1/users/token
 # export TOKEN="COPY TOKEN STRING FROM LAST CALL"
+
+# curl -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IjU0YmIyMTY1LTcxZTEtNDFhNi1hZjNlLTdkYTRhMGUxZTJjMSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzZXJ2aWNlIHByb2plY3QiLCJzdWIiOiI1Y2YzNzI2Ni0zNDczLTQwMDYtOTg0Zi05MzI1MTIyNjc4YjciLCJleHAiOjE2NDMwNjAzMTIsImlhdCI6MTY0MzA1NjcxMiwicm9sZXMiOlsiQURNSU4iLCJVU0VSIl19.ecOTHkicKxPN3Q_HSa7tGyxuIh-RxPcg3wfsPatbvvEZmXJs26mGLu5iZAaeSEv6wwb9jpETjSh8TuCbcjnHC4LS93z8UEm5y2ANCsxMqF43c8YfSXNPGp3ZXif3I9wZH25_cKYaHoqSlRlhyj1ChWnVyCxbMK4NJ7jkObD5BH-a-J-dO7b1qAbLr8lNqpkhKsbttq_l7aBFfMjhHD9W8scB5m3B_sxpqZUCCJZzxZBAUlFW1iY_sCb6oWjNKVTbz00x9eTFh3wQlxx3QF3JEn2JT1ucjxAvOeJm4inVc8nJRQHzWOO17UPsOq2eqzR1mldyuJqppcacR1s74WfnXg" http://localhost:3000/v1/users/1/2
 # curl -H "Authorization: Bearer ${TOKEN}" http://localhost:3000/v1/users/1/2
 
 # For testing load on the service.
+# hey -m GET -c 100 -n 10000 -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IjU0YmIyMTY1LTcxZTEtNDFhNi1hZjNlLTdkYTRhMGUxZTJjMSIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzZXJ2aWNlIHByb2plY3QiLCJzdWIiOiI1Y2YzNzI2Ni
+# 0zNDczLTQwMDYtOTg0Zi05MzI1MTIyNjc4YjciLCJleHAiOjE2NDMwNjAzMTIsImlhdCI6MTY0MzA1NjcxMiwicm9sZXMiOlsiQURNSU4iLCJVU0VSIl19.ecOTHkicKxPN3Q_HSa7tGyxuIh-RxPcg3wfsPatbvvEZmXJs26mGLu5iZAaeSEv6wwb9jpETjSh8TuCbcjnHC4LS93z8UEm5y2ANCsxMqF43c8YfS
+# XNPGp3ZXif3I9wZH25_cKYaHoqSlRlhyj1ChWnVyCxbMK4NJ7jkObD5BH-a-J-dO7b1qAbLr8lNqpkhKsbttq_l7aBFfMjhHD9W8scB5m3B_sxpqZUCCJZzxZBAUlFW1iY_sCb6oWjNKVTbz00x9eTFh3wQlxx3QF3JEn2JT1ucjxAvOeJm4inVc8nJRQHzWOO17UPsOq2eqzR1mldyuJqppcacR1s74WfnXg" h
+# ttp://localhost:3000/v1/users/1/2
+
 # hey -m GET -c 100 -n 10000 -H "Authorization: Bearer ${TOKEN}" http://localhost:3000/v1/users/1/2
 # hey -m GET -c 100 -n 10000 http://localhost:3000/v1/test
 # zipkin: http://localhost:9411
